@@ -25,6 +25,20 @@ def parse_hand(hand):
         else:
             sets[hand[i]] = 1
 
+
+    if "J" in hand:
+        max_rank = -1
+        new_hand = None
+
+        for i in sets:
+
+            rank = parse_hand(hand.replace("J", i))
+            if max_rank == -1 or rank > max_rank:
+                new_hand = hand.replace("J", i)
+                max_rank = rank
+
+        return max_rank
+
     if len(sets) == 1:
         return 1 # five-of-a-kind
     if len(sets) == 2:
