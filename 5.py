@@ -1,20 +1,15 @@
+import functools
 import re
 
 class Interval:
     range = []
     delta = 0
 
-    def translated(self):
-        translatedInterval = Interval()
-        translatedInterval.delta = self.delta
-        translatedInterval.range = [self.range[0] + self.delta, self.range[1]+ self.delta]
-        return translatedInterval
-    
     def __str__(self):
         return self.__repr__()
 
     def __repr__(self):
-        return str(self.range) + " < " +  str(self.delta)
+        return str(self.range) + " " +  str(self.delta)
 
 def parse_input(filename):
 
@@ -38,83 +33,60 @@ def parse_input(filename):
                     nextline = next(file)
                 except Exception:
                     break
-            # print(next(file))
 
     return seeds, mappings
 
-def create_intersection(intervalA, intervalB):
-    points = list(set(intervalA.range + intervalB.range))
-    points.sort()
-
-    intervals = []
-   
-    for i in range(0, len(points) - 1):
- 
-        interval = Interval()
-        interval.range = [points[i], points[i + 1]]
-        
-        if intersects(interval, intervalA):
-            interval.delta += intervalA.delta
-        
-        if intersects(interval, intervalB):
-            interval.delta += intervalB.delta
-            interval.range[0] -= intervalB.delta
-            interval.range[1] -= intervalB.delta
-        
-        intervals.append(interval)
-
-    return intervals
-
-def intersects(intervalA, intervalB):
-    return (intervalA.range[1] > intervalB.range[0] and intervalA.range[0] < intervalB.range[1])
-
-
-def shift(range, delta, unshift = False):
-    if unshift == True:
-        return [range[0] - delta, range[1] - delta]
-    else:
-        return [range[0] + delta, range[1] + delta]
+def overlaps(rangeA, rangeB):
+    return rangeA[0] < rangeB[1] and rangeA[1] > rangeB[0]
 
 def build_mappings(mappings):
 
-    result_intervals = []
+    existing_intervals = []
 
     for mapping in mappings:
 
-        new_intervals = []
+        map_intervals = []
 
-        for map in mappings[mapping]:
+        for map_details in mappings[mapping]:
 
             interval = Interval()
-            interval.range = [map[1], map[1] + map[2]]
-            interval.delta = map[0] - map[1]
+            interval.range = [map_details[1], map_details[1] + map_details[2]]
+            interval.delta = map_details[0] - map_details[1]
             
-            if len(result_intervals) == 0:
-                new_intervals.append(interval)
+            map_intervals.append(interval)
+            
+        numbers = functools.reduce(lambda a, b: a + b.range, map_intervals, [])
+        numbers += functools.reduce(lambda a, b: a + [b.range[0] + b.delta, b.range[1] + b.delta], existing_intervals, [])
+        numbers = list(set(numbers)) # eliminate dupes
+        numbers.sort()
 
-            else:
+        new_intervals = []
 
-                intersected = False
+        for i in range(len(numbers) - 1):
+            interval = Interval()
+            interval.range = [numbers[i], numbers[i + 1]]
+            for map_interval in map_intervals:
+                if overlaps(interval.range, map_interval.range):
+                    interval.delta = map_interval.delta
 
-                for i in result_intervals:
+            new_intervals.append(interval)
 
-                    if intersects(interval, i.translated()):
-                        sliced_intervals = create_intersection(interval, i.translated())
-                        new_intervals += sliced_intervals
-                        intersected = True
+        for ni in new_intervals:
 
-                if intersected == False:
-                        new_intervals.append(interval)
+            for ei in existing_intervals:
+                if overlaps(ni.range, list(map(lambda x: x + ei.delta, ei.range))):
+                    ni.delta += ei.delta
+                    ni.range[0] -= ei.delta
+                    ni.range[1] -= ei.delta
+                    break
 
+        existing_intervals = new_intervals
 
-        result_intervals = new_intervals   
-
-    return result_intervals
+    return existing_intervals
 
 def map_seed(seed, intervals):
     for interval in intervals:
-        intervalrange = interval.translated().range
-        if seed in range(intervalrange[0], intervalrange[1]):
+        if seed in range(interval.range[0], interval.range[1]):
             return seed + interval.delta
     
     return seed
@@ -128,19 +100,24 @@ def main():
     mappings = build_mappings(mappings)
     i = 0
 
+    numbers = []
+    seed_intervals = []
+
     while i < len(seeds):
 
-        seed = seeds[i]
-        r = seeds[i + 1]
-        for s in range(seed, seed + r):
-            mapped_seed = map_seed(s, mappings)
-            if mapped_seed < min_location or min_location == -1:
-                min_location = mapped_seed
+        interval = [seeds[i], seeds[i] + seeds[i + 1]]
+        seed_intervals.append(interval)
 
         i += 2
 
-    print(map_seed(82,  mappings))
-    print("the lowest location: %s" % (min_location))
+    for seed_interval in seed_intervals:
+        for mapping in mappings:
+            if overlaps(seed_interval, mapping.range):
+                if min_location > mapping.range[0] + mapping.delta or min_location == -1:
+                    min_location = mapping.range[0] + mapping.delta
+                    print("seed %s => loc %s" % (mapping.range[0], mapping.range[0] + mapping.delta))
+
+    print("Min location is : %s" % (min_location))
 
 if __name__ == "__main__":
     main()
