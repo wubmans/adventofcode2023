@@ -31,12 +31,19 @@ def main():
     print(directions)
     print(nodes)
 
-    node = 'AAA'
+    next_nodes, current_nodes = []
+
+    for node in nodes:
+        if node[2] == 'A':
+            current_nodes.append(node)
     i = 0
 
-    while node != 'ZZZ':
+    done = False
+
+    while done == False:
         direction = ['L', 'R'].index(directions[i % len(directions)])
-        node = nodes[node][direction]
+        for node in current_nodes:
+
         i += 1
 
     print("Total is: %s" % (i))
