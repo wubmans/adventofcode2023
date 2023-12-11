@@ -15,7 +15,7 @@ def parse_input(filename):
     
     return data
 
-def parse_hand(hand):
+def parse_hand(hand, skip = False):
 
     sets = {}
     
@@ -26,18 +26,18 @@ def parse_hand(hand):
             sets[hand[i]] = 1
 
 
-    if "J" in hand:
-        max_rank = -1
-        new_hand = None
+    if skip == False:
 
-        for i in sets:
+        if "J" in hand:
+            del(sets["J"])
+            min_rank = parse_hand(hand, True)
 
-            rank = parse_hand(hand.replace("J", i))
-            if max_rank == -1 or rank > max_rank:
-                new_hand = hand.replace("J", i)
-                max_rank = rank
+            for i in sets:
+                rank = parse_hand(hand.replace("J", i))
+                if min_rank == -1 or rank < min_rank:
+                    min_rank = rank
 
-        return max_rank
+            return min_rank
 
     if len(sets) == 1:
         return 1 # five-of-a-kind
@@ -59,7 +59,7 @@ def parse_hand(hand):
 
     print(len(sets))
 
-cards = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2', '1']
+cards = ['A', 'K', 'Q', 'T', '9', '8', '7', '6', '5', '4', '3', '2',  'J', ]
 
 def sort_hands(handA, handB):
     rankA = parse_hand(handA[0])
