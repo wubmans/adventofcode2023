@@ -57,7 +57,6 @@ def parse_hand(hand, skip = False):
     
     return 7 # high card
 
-    print(len(sets))
 
 cards = ['A', 'K', 'Q', 'T', '9', '8', '7', '6', '5', '4', '3', '2',  'J', ]
 
@@ -77,8 +76,6 @@ def main():
     data = parse_input("7input.txt")
 
     data = sorted(data, key=cmp_to_key(sort_hands))
-
-    print(data)
 
     total = 0
 
