@@ -9,6 +9,13 @@ def flip(grid):
 def unflip(grid):
     return list(''.join(a[::-1]) for a in zip(*grid))
 
+def calculate_score(grid):
+    score = 0
+    for i, row in enumerate(grid):
+        score += (len(grid) - i) * row.count('O')
+
+    return score
+
 file = open('14input.txt')
 
 grid = []
@@ -21,19 +28,24 @@ for line in file:
     grid.append(line)
 
 q = grid
+ig = ''.join(q)
 processed_grid = None
 score = 0
 
 for cycle in range(int(1e9)):
 
     if cycle % 1e6 == 0:
-        print('.', end = '')
-        print(score)
-
-    ig = ''.join(q)
-
+        print('%s => score: %s' % (cycle /1e6, score))
+        
     if ig in results:
-        q = results[ig]
+        c, ig, q, score = results[ig]
+        print("cycle starts on %s, from %s, with length %s" % (cycle, c, cycle - c))
+        irr = int((1e9 - c) % (cycle - c) + c - 1)
+        print(irr)
+        sc = results[list(results.keys())[irr]][3]
+        print(sc)
+        break
+        
         continue
 
     for dir in range(4):
@@ -60,7 +72,6 @@ for cycle in range(int(1e9)):
                     continue
 
                 count_os = d.count('O')
-                score += sum(10 - offset - x for x in range(0, count_os))
                 offset += len(d)
 
                 ct += ''.join(['O' for i in range(0, count_os)])
@@ -79,6 +90,8 @@ for cycle in range(int(1e9)):
 
     # print('cycle %s, score = %s' % (cycle, score))
         
-    results[ig] = q
+    results[ig] = (cycle, ''.join(q), q, calculate_score(q))
+
+    ig = ''.join(q)
         
    
