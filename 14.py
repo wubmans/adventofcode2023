@@ -1,44 +1,84 @@
+import re
+
+def rotate(grid):
+    return list(''.join(a[::-1]) for a in zip(*grid))
+
+def flip(grid):
+    return list(''.join(a) for a in zip(*grid))
+
+def unflip(grid):
+    return list(''.join(a[::-1]) for a in zip(*grid))
 
 file = open('14input.txt')
 
 grid = []
 
+results = {}
+
 for line in file:
 
     line = line.rstrip()
-    
     grid.append(line)
 
-q = list(list(a) for a in zip(*grid))
-
+q = grid
+processed_grid = None
 score = 0
 
-for r in q:
-    s = ''.join(r).split('#')
-    offset = 0
+for cycle in range(int(1e9)):
 
-    ct = ''
-    for i, d in enumerate(s):
+    if cycle % 1e6 == 0:
+        print('.', end = '')
+        print(score)
 
-        if d == '':
-            if i > 0:
-                ct += '#'
-                offset += 1
-            continue
+    ig = ''.join(q)
 
-        if i > 0:
-            offset += 1
+    if ig in results:
+        q = results[ig]
+        continue
+
+    for dir in range(4):
+
+        score = 0
+
+        q = flip(q)
+        processed_grid = []
+
+        for r in q:
+            s = []
+
+            # gezeik met delimiter split die de delimiter weghaalt
+            s = list(filter(bool, re.split(r'(#)', ''.join(r))))
         
-        count_os = d.count('O')
-        score += sum(100 - offset - x for x in range(0, count_os))
-        offset += len(d)
+            ct = ''
+            offset = 0
 
-        ct += ''.join(['O' for i in range(0, count_os)])
-        ct += ''.join(['.' for i in range(0, len(d) - count_os)])
-        ct += '#' if i < len(s) - 1 else ''
+            for i, d in enumerate(s):
 
-    print(''.join(r))
-    print(ct)
-    print()
+                if d == '#':
+                    ct += d
+                    offset += 1
+                    continue
 
-print('total score is %s' % score)
+                count_os = d.count('O')
+                score += sum(10 - offset - x for x in range(0, count_os))
+                offset += len(d)
+
+                ct += ''.join(['O' for i in range(0, count_os)])
+                ct += ''.join(['.' for i in range(0, len(d) - count_os)])
+                
+
+            # print(''.join(r))
+            # print(ct)
+            # print()
+                
+            processed_grid.append(ct)
+
+        processed_grid = flip(processed_grid)
+
+        q = rotate(processed_grid)
+
+    # print('cycle %s, score = %s' % (cycle, score))
+        
+    results[ig] = q
+        
+   
