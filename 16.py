@@ -17,13 +17,6 @@ def out_of_bounds(point, grid):
 
 def process_beam(beam, grid):
 
-    for p in beam['prevs']:
-        if p['point'] == beam['point'] and p['direction'] == beam['direction']:
-            return
-
-    beam['prevs'].append({ 'point': beam['point'], 'direction': beam['direction']})
-    p = grid[beam['point'][0]][beam['point'][1]]
-
     if p == '\\':
         fd = { 'n' : 'w', 'w' : 'n', 'e': 's', 's' : 'e' }
         beam['direction'] = fd[beam['direction']]
@@ -141,8 +134,7 @@ for i in range(len(grid)):
     
         beams = [{ 'point': (point[0], point[1]), 'direction' : point[2], 'prevs': [] }]
         score = run(beams)
-        print("start: (%s, %s) -> %s  ==> score: %s" % (point[0]
-        , point[1], point[2] , score))
+        print("start: (%s, %s) -> %s  ==> score: %s" % (point[0], point[1], point[2] , score))
         if score > max_score:
             max_score = score
 
