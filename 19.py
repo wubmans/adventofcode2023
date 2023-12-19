@@ -36,36 +36,95 @@ for line in open('19input.txt').readlines():
 
         points.append(pl)
 
-def apply_rule(p, rule):
-    for r in rule:
+def apply_rule(path, ruleset, rule):
+
+    if rule in ('A', 'R'):
+        path['result'] = rule
+        return [path]
+
+    paths = []
+
+    for i, r in enumerate(ruleset[rule]):
+
+        npath = path.copy()
+
+        npath[rule] = []
+
+        for j in range(i):
+            v, cmp, rng, rr = ruleset[rule][j]
+            cmp = '>=' if cmp == '<' else '<='
+            npath[rule].append((v, cmp, rng))
+
         if type(r) is tuple:
             v, cmp, rng, rr = r
-            if cmp == '>':
-                if p[v] > int(rng):
-                    return rr
-            if cmp == '<':
-                if p[v] < int(rng):
-                    return rr
+            npath[rule].append((v, cmp, rng))
         else:
-            return r
+            rr = r
+
+        paths += apply_rule(npath, ruleset, rr)
+
+    return paths
+
 
 sum = 0
 
-for p in points:
+paths = apply_rule({}, ruleset, 'in')
 
-    output = 'in'
-    print('%s =====> ' % p, end = '')
+for path in paths:
 
-    while output not in ('R', 'A'):
-        output = apply_rule(p, ruleset[output]) 
-        print(output + ' -> ', end = '')
+    q = {
+        'x' : [1, 4000],
+        'm' : [1, 4000],
+        'a' : [1, 4000],
+        's' : [1, 4000]
+    }
+    
+    if (path['result'] == 'R'):
+        continue
+
+    for step in path:
+        for pp in path[step]:
+
+            if type(pp) is not tuple:
+                continue
+
+            k, cmp, rng = pp
+
+            if cmp == '<':
+                q[k][1] = int(rng) - 1  
+            if cmp == '<=':
+                q[k][1] = int(rng)  
+            if cmp == '>':
+                q[k][0] = int(rng) + 1  
+            if cmp == '>=':
+                q[k][0] = int(rng)  
+
+    pr = 1
+
+    for k in q:
+        pr *= (q[k][1] - q[k][0] + 1)
 
 
-    print(output)
-    if output == 'A':
-        for k in p:
-            sum += p[k]
+    print("%s => %s" % (q, pr))
+    sum += pr
+
+
+print("total combo's: %s" % sum)
+# while True:
+
+#     output = 'in'
+#     print('%s =====> ' % p, end = '')
+
+#     while output not in ('R', 'A'):
+#         output = apply_rule(p, ruleset[output]) 
+#         print(output + ' -> ', end = '')
+
+
+#     print(output)
+#     if output == 'A':
+#         for k in p:
+#             sum += p[k]
 
 
 
-print('Total score: %s' % sum)
+# print('Total score: %s' % sum)
