@@ -15,27 +15,46 @@ def next_point(point, direction):
 def out_of_bounds(point, grid):
     return point[0] < 0 or point[0] > len(grid[0]) - 1 or point[1] < 0 or point[1] > len(grid) - 1
 
+
+processions = [ [{} for i in range(110) ] for i in range(110) ]
+
 def process_beam(beam, grid):
+
+    if beam['direction'] in processions[beam['point'][0]][beam['point'][1]]:
+        return processions[beam['point'][0]][beam['point'][1]][beam['direction']]
+
+    for p in beam['prevs']:
+        if p['point'] == beam['point'] and p['direction'] == beam['direction']:
+            processions[beam['point'][0]][beam['point'][1]][beam['direction']] = None
+            return
+
+    beam['prevs'].append({ 'point': beam['point'], 'direction': beam['direction']})
+    p = grid[beam['point'][0]][beam['point'][1]]
 
     if p == '\\':
         fd = { 'n' : 'w', 'w' : 'n', 'e': 's', 's' : 'e' }
         beam['direction'] = fd[beam['direction']]
+        processions[beam['point'][0]][beam['point'][1]][beam['direction']] = [beam]
         return [beam]
 
     if p == '/':
         fd = { 'n' : 'e', 'e' : 'n', 's': 'w', 'w' : 's' }
         beam['direction'] = fd[beam['direction']]
-        return [beam]
+        processions[beam['point'][0]][beam['point'][1]][beam['direction']] = [beam]
+        return [beam] 
 
     if p == '|' and beam['direction'] in ['e', 'w']:
         beams = [{ 'point': beam['point'], 'direction' : 'n', 'prevs': beam['prevs'] }, { 'point': beam['point'], 'direction' : 's', 'prevs': beam['prevs'] }]
+        processions[beam['point'][0]][beam['point'][1]][beam['direction']] = beams
         return beams
 
     if p == '-' and beam['direction'] in ['n', 's']:
         beams = [{ 'point': beam['point'], 'direction' : 'w', 'prevs': beam['prevs'] }, { 'point': beam['point'], 'direction' : 'e', 'prevs': beam['prevs'] }]
+        processions[beam['point'][0]][beam['point'][1]][beam['direction']] = beams
         return beams
     
-    # print('x')
+    processions[beam['point'][0]][beam['point'][1]][beam['direction']] = [beam]
+
     return [beam]
 
 def lit(beam, lit_grid):
@@ -60,8 +79,6 @@ def run(beams):
     while len(beams) > 0:
 
         processed_beams = []
-
-        changed = False
     
         for beam in beams:
             lit(beam, grid_lit)
