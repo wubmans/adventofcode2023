@@ -1,3 +1,5 @@
+import graphviz
+
 conns = {}
 
 for line in open('20input.txt').readlines():
@@ -26,6 +28,16 @@ for conn, stats in conns.items():
 lows = 0
 highs = 0
 
+dot = graphviz.Digraph(comment= 'Le epic diagram of pulses')
+
+for conn, stats in conns.items():
+    dot.node(conn, conn)
+
+    for output in stats['outputs']:
+        dot.edge(conn, output)
+
+dot.render('pretty_pulses.gv', view=True)
+exit()
 
 
 for i in range(20000, int(1e9)):
