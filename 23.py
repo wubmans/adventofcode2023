@@ -9,7 +9,6 @@ def print_grid(grid):
 
 def search_grid(grid):
 
-    touched_grid = grid.copy()
 
     vertices = [(1,0), (21, 22)]
     edges = {}
@@ -60,7 +59,7 @@ def search_grid(grid):
                 if len(pps) == 1:
                     path.append(pps[0])
                     continue
-
+                
                 if (path[0], p) in edges or (p, path[0]) in edges:
                     break
 
@@ -84,46 +83,152 @@ def search_grid(grid):
     #     if edge[0] not in vertices or edge[-1] not in vertices:
     #         del edges[edge]
 
+    # 
+        
+    def bfs(p, graph):
 
+        results = []
+
+        for v in graph[p['path'][-1]]:
+            if v in p['seen']:
+                continue
+
+            pp = { 'path': p['path'].copy(), 'seen': p['seen'].copy(), 'score': p['score'] }
+
+            pp['path'].append(v)
+            pp['seen'].add(v)
+
+
+            pp['score'] += edges[(p['path'][-1], v)] if (p['path'][-1], v) in edges else edges[(v, p['path'][-1])]
+
+            if v != (139, 140):
+                results += bfs(pp, graph)
+            else:
+                results += [pp]
+
+        return results
+
+
+    graph = { v: [] for v in vertices }
+
+    for v0, v1 in edges:
+        graph.setdefault(v0, []).append(v1)
+        graph.setdefault(v1, []).append(v0)
+
+    nedges = {}
+
+    results = bfs({ 'path': [(1, 0)], 'seen': set((1, 0)), 'score': 0 }, graph)
+   
+
+    # changing = True
+
+    # while changing:
+
+    #     changing = False
+
+    #     for v0, v1 in edges:
+
+    #         if v0 != (1,0):
+    #             continue
+
+    #         v0c = 0
+    #         v1c = 0
+
+    #         pps = []
+
+    #         for vn0, vn1 in edges:
+                
+    #             if v0 == vn0 or v0 == vn1:
+    #                 v0c += 1
+
+    #             if v1 == vn0 or v1 == vn1:
+    #                 v1c += 1
+
+    #             if vn0 == v1:
+    #                 pps.append(vn1)
+
+    #         if v0c <= 3 and v1c <= 3:
+    #             changing = True
+    #             for p in pps:
+    #                 edges[(v0, p)] = edges[(v0, v1)] + edges[(v1, p)]
+    #                 del edges[(v1, p)]
+    #             del edges[(v0, v1)]
+
+    #             break
+
+    # print(edges)
+
+    
+    # counts = {}
+
+    # for v0, v1 in edges:
+    #     if v0 not in counts:
+    #         counts[v0] = 0
+    #     if v1 not in counts:
+    #         counts[v1] = 0
+
+    #     counts[v0] += 1
+    #     counts[v1] += 1
+
+
+    # paths = [[(1, 0)]]
+
+    # closed_paths = []
+
+    # ds = {}
+
+    # def distance_between_vs(v0, v1):
+
+       
+
+    #     if (v0, v1) in ds:
+    #         return ds[(v0, v1)]
+        
+    #     vss = [v0]
+    
+    #     while v1 not in vss:
+
+    #         nvss = []
+
+    #         for vs in vss:
+
+    #             for v in graph[vs]:
+    #                 ds[(vs, v)] = edges[(vs, v)] if (vs, v) in edges else edges[(v, vs)]
+    #                 if v0 != v:
+    #                     ds[(v0, v)] = ds[(v0, vs)] + ds[(vs, v)]
+    #                 if v == v1:
+    #                     return ds[(vs, v)]
+                    
+    #                 nvss.append(v)
+
+    #         vss = nvss
+            
+
+    # distance_between_vs((1, 0), (13, 13))
+
+    # while paths:
+
+    #     new_paths = []
+
+    #     for path in paths:
+    #         for v in graph[path[-1]]:
+    #             if v == (139, 140):
+    #                 closed_paths.append(path.copy().append(v))
+    #             if v not in path:
+    #                 np = path.copy()
+    #                 np.append(v)
+    #                 new_paths.append(np)
+
+    #     paths = new_paths
+
+    # print()
+    # print()
 
     max_length = -1
-   
-    paths = [[[(1,0)], 0]]
 
-    changed = True
-    
-    while changed:
-        changed = False
-
-        new_paths = []
-
-        for path in paths:
-
-            pathChanged = False
-
-            for edge in edges:
-                if path[0][-1] in edge:
-                    p = edge[0] if path[0][-1] == edge[1] else edge[1]
-                    if p not in path[0]:
-                        new_path = [path[0].copy(), path[1]]
-                        new_path[0].append(p)
-                        new_path[1] += edges[edge]
-                        new_paths.append(new_path)
-                        changed = True
-                        pathChanged = True
-
-            if pathChanged == False:
-                new_paths.append(path)           
-                        
-        if changed:
-            paths = new_paths
-
-    print()
-    print()
-
-    for path in paths:
-        if path[1] > max_length or max_length == -1:
-            max_length = path[1]
+    for result in results:
+        if result['score'] > max_length or max_length == -1:
+            max_length = result['score']
   
     print("max length: %s" % (max_length))
 
